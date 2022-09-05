@@ -7,8 +7,8 @@ from pymongo import MongoClient
 
 
 def get_database():
-    # Connection to my MongoAtlas DB, Also change to local DB later.
-    uri = "mongodb+srv://username:password@cluster0.hozznpa.mongodb.net/?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE"
+    # Connection to my MongoAtlas DB, Also change to local database later.
+    uri = "mongodb+srv://[username]:[password]@[uri]"
     # Create a connection using to DB
     client = MongoClient(uri)
     # Creating/specifying the database
@@ -93,18 +93,22 @@ print("Starting Stream")
 
 for line in r.iter_lines():
     if line:
-        # f.write(str(json.dumps(json.loads(line), indent=4, sort_keys=True)))
+        try:
+            # f.write(str(json.dumps(json.loads(line), indent=4, sort_keys=True)))
 
-        # decodes payload into useable format
-        decoded_line = line.decode('utf-8')
-        #decoded_line = decoded_line.replace("false", "\"false\"")
-        #decoded_line = decoded_line.replace(" ", "")
-        event = json.loads(decoded_line)
-        eventType = event['eventType']
+            # decodes payload into useable format
+            decoded_line = line.decode('utf-8')
+            #decoded_line = decoded_line.replace("false", "\"false\"")
+            #decoded_line = decoded_line.replace(" ", "")
+            event = json.loads(decoded_line)
+            eventType = event['eventType']
 
-        # Creates/Specifies the collection. Collections are grouped by their event type
-        collection_name = dbname[eventType]
-        collection_name.insert_one(event)
+            # Creates/Specifies the collection. Collections are grouped by their event type
+            collection_name = dbname[eventType]
+            collection_name.insert_one(event)
+        except Exception as e:
+            # print exceptions
+            print(e)
 
-        # print(event)
-        print(eventType)
+    # print(event)
+    print(eventType)
