@@ -2,31 +2,24 @@ import jwt
 import requests
 import json
 import socket
-import time
 import os
-import datetime
-import sys
-import pymongo
 from pymongo import MongoClient
 
 
 def get_database():
-
-    # Connection to my MongoAtlas DB
-    CONNECTION_STRING = "mongodb+srv://<User>:<Pass>@<ClusterAddress>"
-
+    # Connection to my MongoAtlas DB, Also change to local DB later.
+    uri = "mongodb+srv://username:password@cluster0.hozznpa.mongodb.net/?retryWrites=true&w=majority&ssl=true&ssl_cert_reqs=CERT_NONE"
     # Create a connection using to DB
-    client = MongoClient(CONNECTION_STRING)
-
+    client = MongoClient(uri)
     # Creating/specifying the database
+
     return client['Spaces_Data']
 
 
 def get_API_Key_and_auth():
     # Gets public key from spaces and places in correct format
     print("-- No API Key Found --")
-    pubKey = requests.get(
-        'https://partners.dnaspaces.eu/client/v1/partner/partnerPublicKey/')  # Change this to .io if needed
+    pubKey = requests.get('https://partners.dnaspaces.io/client/v1/partner/partnerPublicKey/')  # Change this to .io if needed
     pubKey = json.loads(pubKey.text)
     pubKey = pubKey['data'][0]['publicKey']
     pubKey = '-----BEGIN PUBLIC KEY-----\n' + pubKey + '\n-----END PUBLIC KEY-----'
@@ -35,22 +28,22 @@ def get_API_Key_and_auth():
     token = input('Enter token here: ')
 
     # Decodes JSON Web Token to get JSON out
-    decodedJWT = jwt.decode(token, pubKey, algorithms=["RS256"], options={"verify_signature": False})
-    decodedJWT = json.dumps(decodedJWT, indent=2)
+    decodedjwt = jwt.decode(token, pubKey, algorithms=["RS256"], options={"verify_signature": False})
+    decodedjwt = json.dumps(decodedjwt, indent=2)
 
-    # picks up required values out of JWT
-    decodedJWTJSON = json.loads(decodedJWT)
-    appId = decodedJWTJSON['appId']
-    activationRefId = decodedJWTJSON['activationRefId']
+    # picks up required values out of jwt
+    decodedjwtJSON = json.loads(decodedjwt)
+    appId = decodedjwtJSON['appId']
+    activationRefId = decodedjwtJSON['activationRefId']
 
     # creates payloads and headers ready to activate app
     authKey = 'Bearer ' + token
     payload = {'appId': appId, 'activationRefId': activationRefId}
     header = {'Content-Type': 'application/json', 'Authorization': authKey}
 
-    # Sends request to spaces with all info about JWT to confirm its correct, if it is, the app will show as activated
+    # Sends request to spaces with all info about jwt to confirm its correct, if it is, the app will show as activated
     activation = requests.post(
-        'https://partners.dnaspaces.eu/client/v1/partner/activateOnPremiseApp/', headers=header, json=payload)  # Change this to .io if needed
+        'https://partners.dnaspaces.io/client/v1/partner/activateOnPremiseApp/', headers=header, json=payload)  # Change this to .io if needed
 
     # pulls out activation key
     activation = json.loads(activation.text)
@@ -93,10 +86,11 @@ except:
 s = requests.Session()
 s.headers = {'X-API-Key': apiKey}
 r = s.get(
-    'https://partners.dnaspaces.eu/api/partners/v1/firehose/events', stream=True)  # Change this to .io if needed
+    'https://partners.dnaspaces.io/api/partners/v1/firehose/events', stream=True)  # Change this to .io if needed
 
 # Jumps through every new event we have through firehose
 print("Starting Stream")
+
 for line in r.iter_lines():
     if line:
         # f.write(str(json.dumps(json.loads(line), indent=4, sort_keys=True)))
