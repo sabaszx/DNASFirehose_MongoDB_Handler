@@ -14,6 +14,11 @@ mongo_username = os.getenv("MONGO_USERNAME")
 mongo_password = os.getenv("MONGO_PASSWORD")
 token = os.getenv("API_KEY")
 
+#open up a log file
+#filename pattern
+filename_pattern = 'logging_' + datetime.datetime.now().strftime('%y%m%d'+'.log')
+
+#logfile = open(filename_pattern,'a')
 
 def get_database():
     # Connection to my MongoAtlas DB, Also change to local database later.
@@ -79,9 +84,6 @@ r = s.get(
 
 # Jumps through every new event we have through firehose
 print("Starting Stream")
-#logging event
-now = datetime.datetime.now()
-filename_pattern = now.strftime('%y%m%d'+'.log')
 
 for line in r.iter_lines():
     if line:
@@ -97,12 +99,19 @@ for line in r.iter_lines():
 
             # Creates/Specifies the collection. Collections are grouped by their event type
             collection_name = dbname[eventType]
+            #time.sleep(1) # slow down stream
             collection_name.insert_one(event)
-
+            #logging to log folder
+            #for monitor or debugging propose, uncomment below
+            #logfile.write(str(json.dumps(json.loads(line), indent=4, sort_keys=True)) + '\n')
         except Exception as e:
             # print ERROR
             # throws decode error and continue
             print(e)
+            #also logging errors
+            #logfile.write(str(e) + '\n')
 
     # print(event)
-    print(now.strftime('%X'+'_'+'%f' + ': ') + eventType)
+    print(datetime.datetime.now().strftime('%X'+ ': ') + eventType)
+
+#logfile.close()
